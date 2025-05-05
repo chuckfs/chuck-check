@@ -1,54 +1,166 @@
-( \
-echo "--- System Overview (neofetch) ---"; \
-neofetch --stdout || echo "neofetch not found, skipping..."; \
-echo ""; \
-echo "--- Kernel & Boot ---"; \
-uname -a; \
-echo ""; \
-echo "--- Bootloader Status (bootctl) ---"; \
-sudo bootctl status; \
-echo ""; \
-echo "--- Kernel Command Line (Current Boot) ---"; \
-cat /proc/cmdline; \
-echo ""; \
-echo "--- Kernel Command Line (Configured for next boot) ---"; \
-cat /etc/kernel/cmdline 2>/dev/null || echo "/etc/kernel/cmdline not found"; \
-echo ""; \
-echo "--- EFI Partition Mount & Content ---"; \
-findmnt /efi || findmnt /boot/efi || echo "EFI partition not found mounted at /efi or /boot/efi"; \
-echo ""; \
-echo "EFI UKI Directory Listing:"; \
-sudo ls -la /efi/EFI/Linux/ 2>/dev/null || sudo ls -la /boot/efi/EFI/Linux/ 2>/dev/null || echo "UKI directory not found or inaccessible"; \
-echo ""; \
-echo "--- Plymouth & Dracut Config ---"; \
-pacman -Q plymouth dracut; \
-echo "Dracut Plymouth Conf:"; \
-cat /etc/dracut.conf.d/plymouth.conf 2>/dev/null || echo "Plymouth dracut config not found"; \
-echo "Default Plymouth Theme:"; \
-plymouth-set-default-theme; \
-echo ""; \
-echo "--- Shell & Prompt Config ---"; \
-echo "Current Shell: $SHELL"; \
-if [ "$SHELL" = "/usr/bin/fish" ]; then echo "Fish Config:"; cat ~/.config/fish/config.fish 2>/dev/null || echo "Fish config not found"; \
-elif [ "$SHELL" = "/bin/bash" ]; then echo "Bash Config:"; cat ~/.bashrc 2>/dev/null || echo ".bashrc not found"; cat ~/.bash_profile 2>/dev/null || echo ".bash_profile not found"; \
-elif [ "$SHELL" = "/bin/zsh" ]; then echo "Zsh Config:"; cat ~/.zshrc 2>/dev/null || echo ".zshrc not found"; \
-fi; \
-echo ""; \
-echo "--- Vault Setup ---"; \
-echo "Vault Dirs:"; \
-ls -ld ~/.caged-cock ~/boner-city; \
-echo "Vault Commands:"; \
-ls -l ~/.local/bin/unlock-cage ~/.local/bin/lock-cock; \
-cat ~/.local/bin/unlock-cage 2>/dev/null; \
-cat ~/.local/bin/lock-cock 2>/dev/null; \
-echo ""; \
-echo "--- Network Config (TCP Congestion) ---"; \
-sysctl net.ipv4.tcp_congestion_control net.core.default_qdisc; \
-cat /etc/sysctl.d/99-bbr.conf 2>/dev/null || echo "BBR sysctl config not found"; \
-echo ""; \
-echo "--- Filesystem Info (lsblk) ---"; \
-lsblk -f; \
-echo ""; \
-echo "--- Hardware Info (inxi - optional, might need install) ---"; \
-inxi -Fxxxrz || echo "inxi not found or failed, skipping..." \
-) | tee ~/system_diag_$(date +%Y%m%d_%H%M%S).txt
+#!/bin/bash
+
+# Enhanced System Diagnostic Script for EndeavourOS/Arch Based Systems
+# Combines configuration checks, hardware info, performance snapshots,
+# security status, disk health, and log snippets.
+
+# --- Define Output File ---
+OUTPUT_FILE=~/system_diag_enhanced_$(date +%Y%m%d_%H%M%S).txt
+exec > >(tee -a "$OUTPUT_FILE") 2>&1
+
+echo "Enhanced System Diagnostic Script"
+echo "Starting Run: $(date)"
+echo "Output will be saved to: $OUTPUT_FILE"
+echo "========================================="
+echo ""
+
+# --- System Overview (neofetch) ---
+echo "--- System Overview (neofetch) ---"
+neofetch --stdout || echo "neofetch not found, skipping..."
+echo ""
+echo "========================================="
+
+# --- Kernel & Boot ---
+echo "--- Kernel & Boot ---"
+uname -a
+echo ""
+echo "--- Bootloader Status (bootctl) ---"
+sudo bootctl status
+echo ""
+echo "--- Kernel Command Line (Current Boot) ---"
+cat /proc/cmdline
+echo ""
+echo "--- Kernel Command Line (Configured for next boot) ---"
+cat /etc/kernel/cmdline 2>/dev/null || echo "/etc/kernel/cmdline not found"
+echo ""
+echo "========================================="
+
+# --- EFI Partition Mount & Content ---
+echo "--- EFI Partition Mount & Content ---"
+findmnt /efi || findmnt /boot/efi || echo "EFI partition not found mounted at /efi or /boot/efi"
+echo ""
+echo "EFI UKI Directory Listing:"
+sudo ls -laR /efi/EFI/Linux/ 2>/dev/null || sudo ls -laR /boot/efi/EFI/Linux/ 2>/dev/null || sudo ls -laR /efi/loader/entries/ 2>/dev/null || sudo ls -laR /boot/loader/entries/ 2>/dev/null || echo "UKI/Entry directory not found or inaccessible"
+echo ""
+echo "========================================="
+
+# --- Plymouth & Dracut Config ---
+echo "--- Plymouth & Dracut Config ---"
+pacman -Q plymouth dracut
+echo "Dracut Plymouth Conf:"
+cat /etc/dracut.conf.d/plymouth.conf 2>/dev/null || echo "Plymouth dracut config not found"
+echo "Default Plymouth Theme:"
+plymouth-set-default-theme
+echo ""
+echo "========================================="
+
+# --- Shell & Prompt Config ---
+echo "--- Shell & Prompt Config ---"
+echo "Current Shell: $SHELL"
+if [ "$SHELL" = "/usr/bin/fish" ]; then echo "Fish Config:"; cat ~/.config/fish/config.fish 2>/dev/null || echo "Fish config not found";
+elif [ "$SHELL" = "/bin/bash" ]; then echo "Bash Config:"; cat ~/.bashrc 2>/dev/null || echo ".bashrc not found"; cat ~/.bash_profile 2>/dev/null || echo ".bash_profile not found";
+elif [ "$SHELL" = "/bin/zsh" ]; then echo "Zsh Config:"; cat ~/.zshrc 2>/dev/null || echo ".zshrc not found";
+else echo "Shell config for $SHELL not checked.";
+fi
+echo ""
+echo "========================================="
+
+# --- Vault Setup ---
+echo "--- Vault Setup ---"
+echo "Vault Dirs:"; ls -ld ~/.caged-cock ~/boner-city 2>/dev/null || echo "Vault directories not found with expected names.";
+echo "Vault Commands:"; ls -l ~/.local/bin/unlock-cage ~/.local/bin/lock-cock 2>/dev/null || echo "Vault commands not found with expected names.";
+echo "--- unlock-cage script content ---"; cat ~/.local/bin/unlock-cage 2>/dev/null || echo "unlock-cage script not found"; echo "";
+echo "--- lock-cock script content ---"; cat ~/.local/bin/lock-cock 2>/dev/null || echo "lock-cock script not found"; echo "";
+echo "========================================="
+
+# --- Network Config & Path ---
+echo "--- Network Config (TCP Congestion) ---"
+sysctl net.ipv4.tcp_congestion_control net.core.default_qdisc
+cat /etc/sysctl.d/99-bbr.conf 2>/dev/null || cat /etc/sysctl.d/99-network-performance.conf 2>/dev/null || echo "TCP congestion sysctl config not found"
+echo ""
+echo "--- Network Interfaces (ip addr) ---"
+ip addr
+echo ""
+echo "--- Network Path Trace (to 8.8.8.8) ---"
+echo "Running traceroute... (may take a moment)"
+traceroute 8.8.8.8 || echo "traceroute failed or not installed"
+echo ""
+echo "========================================="
+
+# --- Filesystem & Disk Info ---
+echo "--- Filesystem Info (lsblk) ---"
+lsblk -f
+echo ""
+echo "--- Disk Mount Info (df -h) ---"
+df -h
+echo ""
+echo "--- Disk Health (SMART - This may take time) ---"
+# Find physical block devices (disks), excluding partitions, loop, rom
+disks=$(lsblk -dpno NAME,TYPE | awk '$2 == "disk" {print $1}')
+if [ -z "$disks" ]; then
+    echo "Could not automatically identify physical disks."
+else
+    echo "Checking SMART status for: $disks"
+    for disk in $disks; do
+        echo "--- SMART Data for $disk ---"
+        sudo smartctl -a "$disk"
+        echo "------------------------------------"
+    done
+fi
+echo ""
+echo "========================================="
+
+# --- Performance Snapshot ---
+echo "--- Performance Snapshot (Brief Capture) ---"
+echo "Running vmstat (5 samples)..."
+vmstat 1 5
+echo ""
+echo "Running iostat (5 samples)..."
+iostat -xz 1 5
+echo ""
+echo "Running top (1 snapshot, top 20 processes)..."
+top -bn1 | head -n 20
+echo ""
+echo "========================================="
+
+# --- Security Status Checks ---
+echo "--- Security Status ---"
+echo "Firewall Status:"
+sudo firewall-cmd --state 2>/dev/null || sudo ufw status verbose 2>/dev/null || echo "No known firewall (firewalld/ufw) active or checked"
+echo ""
+echo "Fail2ban Status (if installed):"
+sudo systemctl is-active fail2ban &>/dev/null && sudo systemctl status fail2ban --no-pager || echo "Fail2ban not found or inactive"
+echo ""
+echo "Arch Audit (if installed):"
+arch-audit 2>/dev/null || echo "arch-audit not found or failed"
+echo ""
+echo "RKHunter Check (if installed - may take significant time):"
+if command -v rkhunter &> /dev/null; then
+    echo "Running rkhunter scan (warnings only)..."
+    sudo rkhunter --check --skip-keypress --report-warnings-only
+else
+    echo "rkhunter not installed."
+fi
+echo ""
+echo "========================================="
+
+# --- Recent System Log Errors ---
+echo "--- Recent System Log Errors (journalctl -p 3) ---"
+echo "Showing last 50 error-level entries since last boot:"
+sudo journalctl -p 3 -b --no-pager -n 50
+echo ""
+echo "========================================="
+
+# --- Detailed Hardware Info ---
+echo "--- Detailed BIOS Info (dmidecode) ---"
+sudo dmidecode -t bios
+echo ""
+echo "--- Detailed Hardware Info (inxi - optional, might need install) ---"
+inxi -Fxxxrz || echo "inxi not found or failed, skipping..."
+echo ""
+echo "========================================="
+
+echo "Diagnostic Run Complete: $(date)"
+echo "Output saved to: $OUTPUT_FILE"
+
+# End of Script
