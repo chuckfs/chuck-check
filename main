@@ -1,0 +1,54 @@
+( \
+echo "--- System Overview (neofetch) ---"; \
+neofetch --stdout || echo "neofetch not found, skipping..."; \
+echo ""; \
+echo "--- Kernel & Boot ---"; \
+uname -a; \
+echo ""; \
+echo "--- Bootloader Status (bootctl) ---"; \
+sudo bootctl status; \
+echo ""; \
+echo "--- Kernel Command Line (Current Boot) ---"; \
+cat /proc/cmdline; \
+echo ""; \
+echo "--- Kernel Command Line (Configured for next boot) ---"; \
+cat /etc/kernel/cmdline 2>/dev/null || echo "/etc/kernel/cmdline not found"; \
+echo ""; \
+echo "--- EFI Partition Mount & Content ---"; \
+findmnt /efi || findmnt /boot/efi || echo "EFI partition not found mounted at /efi or /boot/efi"; \
+echo ""; \
+echo "EFI UKI Directory Listing:"; \
+sudo ls -la /efi/EFI/Linux/ 2>/dev/null || sudo ls -la /boot/efi/EFI/Linux/ 2>/dev/null || echo "UKI directory not found or inaccessible"; \
+echo ""; \
+echo "--- Plymouth & Dracut Config ---"; \
+pacman -Q plymouth dracut; \
+echo "Dracut Plymouth Conf:"; \
+cat /etc/dracut.conf.d/plymouth.conf 2>/dev/null || echo "Plymouth dracut config not found"; \
+echo "Default Plymouth Theme:"; \
+plymouth-set-default-theme; \
+echo ""; \
+echo "--- Shell & Prompt Config ---"; \
+echo "Current Shell: $SHELL"; \
+if [ "$SHELL" = "/usr/bin/fish" ]; then echo "Fish Config:"; cat ~/.config/fish/config.fish 2>/dev/null || echo "Fish config not found"; \
+elif [ "$SHELL" = "/bin/bash" ]; then echo "Bash Config:"; cat ~/.bashrc 2>/dev/null || echo ".bashrc not found"; cat ~/.bash_profile 2>/dev/null || echo ".bash_profile not found"; \
+elif [ "$SHELL" = "/bin/zsh" ]; then echo "Zsh Config:"; cat ~/.zshrc 2>/dev/null || echo ".zshrc not found"; \
+fi; \
+echo ""; \
+echo "--- Vault Setup ---"; \
+echo "Vault Dirs:"; \
+ls -ld ~/.caged-cock ~/boner-city; \
+echo "Vault Commands:"; \
+ls -l ~/.local/bin/unlock-cage ~/.local/bin/lock-cock; \
+cat ~/.local/bin/unlock-cage 2>/dev/null; \
+cat ~/.local/bin/lock-cock 2>/dev/null; \
+echo ""; \
+echo "--- Network Config (TCP Congestion) ---"; \
+sysctl net.ipv4.tcp_congestion_control net.core.default_qdisc; \
+cat /etc/sysctl.d/99-bbr.conf 2>/dev/null || echo "BBR sysctl config not found"; \
+echo ""; \
+echo "--- Filesystem Info (lsblk) ---"; \
+lsblk -f; \
+echo ""; \
+echo "--- Hardware Info (inxi - optional, might need install) ---"; \
+inxi -Fxxxrz || echo "inxi not found or failed, skipping..." \
+) | tee ~/system_diag_$(date +%Y%m%d_%H%M%S).txt
